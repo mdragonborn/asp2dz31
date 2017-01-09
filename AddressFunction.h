@@ -56,11 +56,15 @@ public:
 
 class UniversalHash:public AddressFunction{
 protected:
-    int koef[2][20];
+    int koef_[2][20];
+    int prime_;
 public:
     //mozda znam
     UniversalHash(int);
     int getAddress(int key, int address, int attempt, table&tab);
+    void setPrime(int p){
+        prime_=p; return;
+    }
 };
 
 #endif //ASP2DZ31_ADDRESSFUNCTION_H

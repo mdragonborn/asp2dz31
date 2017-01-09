@@ -94,8 +94,8 @@ public:
     string * findKey(int);
     bool insertKey(int, string&) override;
     bool deleteKey(int) override;
-    double avgAccessSuccess()=0;
-    double avgAccessUnsuccess() const =0;
+    double avgAccessSuccess(){return 1;};
+    double avgAccessUnsuccess(){return 1;};
     double avgAccessUnsuccessEst() const override{
         if (keyCount()==tableSize()) return log2(table1_.size_);
         return (1.0)/(1-fillRatio());
@@ -121,7 +121,7 @@ public:
     int maxkey()const override{
         return (table1_.max()>table2_.max())?table1_.max():table2_.max();
     }
-    virtual void testFindKey(int)=0;
+    virtual void testFindKey(int){return;};
 };
 
 

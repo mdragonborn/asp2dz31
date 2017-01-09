@@ -42,24 +42,72 @@ using namespace std;
     cout<<"procena "<<tabela.avgAccessUnsuccessEst()<<endl;
 }*/
 
-int randkey(HashTable& table){
+int randkey(HashBase* table){
     return (int)((double)rand()/RAND_MAX*(table.maxkey()-table.minkey())+table.minkey());
 }
-
-void test(HashTable& table){
-    int src=table.tableSize()*10; int random_key;
+int step(int size){
+    return 29%size;
+}
+void pretraga(HashBase* tabela){
+    int key;
+    cout << "Kljuc za pretragu: " <<flush;
+    cin >> key;
+    string * str=tabela->findKey(key);
+    if(str) cout << "Nadjen string " << *str << " sa kljucem " << key;
+    else cout << "Kljuc ne postoji u tabeli" <<endl;
+    return;
+}
+void umetanje(HashBase* tabela){
+    int key; string str;
+    cout << "String: "<<flush; cin >>str;
+    cout << "Kljuc: "<<flush;
+    cin>>key;
+    while (key<0) {
+        cout<<"Nevalidna vrednost"<<endl;
+        cin>>key;
+    }
+    if (tabela->insertKey(key, str))
+        cout<<"Uspesno umetanje."<<endl;
+    else cout<<"Neuspesno umetanje. Tabela puna."<<endl;
+    return;
+}
+void statistika(HashBase*tabela){
+    cout << "Prosecan broj pristupa prilikom uspesne pretrage: " << tabela->avgAccessSuccess()<<endl;
+    cout << "Procenjena efikasnost neuspesne pretrage "<< tabela->avgAccessUnsuccessEst()<<endl;
+    cout << "Prosecan broj pristupa prilikom neuspesne pretrage: " << tabela->avgAccessUnsuccess()<<endl;
+    cout << "Popunjenost tabele: "<< tabela->fillRatio()<<endl;
+    return;
+}
+void brisanje(HashBase* tabela){
+    int key;
+    cout<<"Kljuc za brisanje: "<<flush;
+    cin>>key;
+    if (tabela->deleteKey(key))
+        cout<<"Uspesno brisanje";
+    else
+        cout<<"Kljuc ne postoji";
+    return;
+}
+void ciscenje(HashBase* tabela){
+    tabela->clear();
+    cout<<"Svi kljucevi obrisani."<<endl;
+    return;
+}
+void brisanjeStat(HashBase* tabela){
+    tabela->resetStats();
+    cout<<"Statistika resetovana"<<endl;
+}
+void test(HashBase* table){
+    int src=table->tableSize()*10; int random_key;
     cout << "Sadrzaj tabele" << endl << table<<endl;
     cout << "Test pretraga na "<<src<< " kljuceva"<<endl;
 
     for(int i=0;i<src;i++){
         random_key=randkey(table);
-        table.testFindKey(random_key);
+        table->testFindKey(random_key);
     }
 
-    cout << "Prosecan broj pristupa prilikom uspesne pretrage: " << table.avgAccessSuccess()<<endl;
-    cout << "Procenjena efikasnost neuspesne pretrage "<< table.avgAccessUnsuccessEst()<<endl;
-    cout << "Prosecan broj pristupa prilikom neuspesne pretrage: " << table.avgAccessUnsuccess()<<endl;
-    cout << "Popunjenost tabele: "<< table.fillRatio()<<endl;
+    statistika(table);
 
     return;
 }
@@ -77,62 +125,13 @@ void menu(){
     return;
 }
 
-int step(int size){
-    return 29%size;
-}
-
-void pretraga(HashTable& tabela){
-    int key;
-    cout << "Kljuc za pretragu: " <<flush;
-    cin >> key;
-    string * str=tabela.findKey(key);
-    if(str) cout << "Nadjen string " << *str << " sa kljucem " << key;
-    else cout << "Kljuc ne postoji u tabeli" <<endl;
-    return;
-}
-void umetanje(HashTable& tabela){
-    int key; string str;
-    cout << "String: "<<flush; cin >>str;
-    cout << "Kljuc: "<<flush;
-    cin>>key;
-    while (key<0) {
-        cout<<"Nevalidna vrednost"<<endl;
-        cin>>key;
-    }
-    if (tabela.insertKey(key, str))
-        cout<<"Uspesno umetanje."<<endl;
-    else cout<<"Neuspesno umetanje. Tabela puna."<<endl;
-    return;
-}
-void statistika(HashTable& table){
-    cout << "Prosecan broj pristupa prilikom uspesne pretrage: " << table.avgAccessSuccess()<<endl;
-    cout << "Procenjena efikasnost neuspesne pretrage "<< table.avgAccessUnsuccessEst()<<endl;
-    cout << "Prosecan broj pristupa prilikom neuspesne pretrage: " << table.avgAccessUnsuccess()<<endl;
-    cout << "Popunjenost tabele: "<< table.fillRatio()<<endl;
-    return;
-}
-void brisanje(HashTable& tabela){
-    int key;
-    cout<<"Kljuc za brisanje: "<<flush;
-    cin>>key;
-    if (tabela.deleteKey(key))
-        cout<<"Uspesno brisanje";
-    else
-        cout<<"Kljuc ne postoji";
-    return;
-}
-void ciscenje(HashTable& tabela){
-    tabela.clear();
-    cout<<"Svi kljucevi obrisani."<<endl;
-    return;
-}
-void brisanjeStat(HashTable& tabela){
-    tabela.resetStats();
-    cout<<"Statistika resetovana"<<endl;
-}
-
 int main(){
-    int input;
+    int input=-1;
+    while(input!=1 && input!=2) {
+        cout << "1. Standardno hesiranje sa bidirekcionom metodom razresavanja kolizija" << endl <<
+        "2.Cuckoo hesiranje" << endl;
+        cin >> input;
+    }
     cout << "Velicina hes tabele: "<<endl;
     cin>>input;
     while(input<0){
@@ -140,7 +139,9 @@ int main(){
         cin>>input;
     }
 
-    HashTable tabela(input,new BidirectLinHash(step(input)));
+    HashBase * tabela;
+    if(input==1) tabela=new HashTable(input,new BidirectLinHash(step(input)));
+    else tabela=new CuckooHashTable(input);
 
     cout << "1.Unos sa standardnog ulaza"<<endl<<"2. Unos iz datoteke"<<endl<<endl<<"0. Izlaz"<<endl;
     cin >>input;
@@ -148,6 +149,7 @@ int main(){
         cout << "Nevalidna vrednost. Opcija: "<<endl;
         cin>>input;
     }
+
     switch(input){
         case 1: break;
         case 2: {
@@ -164,7 +166,7 @@ int main(){
                 string str; int key;
                 fajl >> str;
                 fajl >> key;
-                if(!tabela.insertKey(key,str)) {
+                if(!tabela->insertKey(key,str)) {
                     cout<<"Tabela puna"<<endl;
                     break;
                 };
