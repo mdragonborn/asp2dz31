@@ -21,13 +21,13 @@ public:
     virtual void clear()=0;
     virtual int keyCount() const =0;
     virtual int tableSize() const =0;
-    friend std::ostream& operator<<(std::ostream& os, HashBase& table){ printtable(os); };
     virtual double fillRatio() const =0;
     virtual int minkey()const =0;
     virtual int maxkey()const =0;
     virtual void testFindKey(int)=0;
+    friend std::ostream& operator<<(std::ostream& os, HashBase& table){ table.printtable(os); return os; };
 private:
-    virtual void printtable(std::ostream&) const=0;
+    virtual void printtable(std::ostream& os) const=0;
 };
 
 class HashTable:public HashBase {
@@ -36,9 +36,8 @@ protected:
     table table_;
     int unsuccess_=0;
     int unsuccess_acc_=0;
-    void printtable(std::ostream&) const override;
+    void printtable(std::ostream& os) const override;
 public:
-    HashTable():{};
     HashTable(int size,AddressFunction * function):function_(function), table_(size){};
     string * findKey(int);
     bool insertKey(int, string&);
@@ -56,6 +55,7 @@ public:
     }
     void clear(){
         table_.clear();
+        resetStats();
         return;
     };
     int keyCount() const{
@@ -64,7 +64,6 @@ public:
     int tableSize() const{
         return table_.size_;
     };
-    friend std::ostream& operator<<(std::ostream& os, HashTable& table);
     double fillRatio() const{
         return ((double)table_.key_count_)/table_.size_;
     };
@@ -75,27 +74,30 @@ public:
         return table_.max_;
     }
     void testFindKey(int);
+
 };
 
 class CuckooHashTable: public HashBase{
 protected:
     table table1_;
     int unsuccess_, unsuccess_acc_;
+    double max_loop_;
     table table2_;
     AddressFunction * function2_, * function1_;
-    void newFunctions();
+    void newFunctions(){return;};
     void rehash();
-    void printtable(std::ostream);
+    void printtable(std::ostream& os) const override;
 public:
     CuckooHashTable(int size):table1_(size), table2_(size), unsuccess_(0), unsuccess_acc_(0){
+        max_loop_=(int)log2(tableSize());
         function1_=new UniversalHash(size);
         function2_=new UniversalHash(size);
     };
     string * findKey(int);
     bool insertKey(int, string&) override;
     bool deleteKey(int) override;
-    double avgAccessSuccess(){return 1;};
-    double avgAccessUnsuccess(){return 1;};
+    double avgAccessSuccess() override{return 1;};
+    double avgAccessUnsuccess()const override {return 1;};
     double avgAccessUnsuccessEst() const override{
         if (keyCount()==tableSize()) return log2(table1_.size_);
         return (1.0)/(1-fillRatio());
@@ -105,6 +107,8 @@ public:
     };
     void clear(){
         table1_.clear();
+        table2_.clear();
+        resetStats();
         return;
     };    int keyCount() const{
         return table1_.keyCount()+table2_.keyCount();

@@ -84,6 +84,7 @@ public:
         *source=tmp;
         return source;
     }
+    void print(std::ostream& os)const;
 };
 
 

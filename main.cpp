@@ -43,7 +43,7 @@ using namespace std;
 }*/
 
 int randkey(HashBase* table){
-    return (int)((double)rand()/RAND_MAX*(table.maxkey()-table.minkey())+table.minkey());
+    return (int)((double)rand()/RAND_MAX*(table->maxkey()-table->minkey())+table->minkey());
 }
 int step(int size){
     return 29%size;
@@ -116,6 +116,7 @@ void menu(){
     cout << "1. Test"<<endl;
     cout << "2. Pretraga"<<endl;
     cout << "3. Umetanje"<<endl;
+    cout << "4. Stampanje" << endl;
     cout << "4. Statistika" <<endl;
     cout << "5. Brisanje kljuca" << endl;
     cout << "6. Brisanje svih kljuceva" <<endl;
@@ -183,10 +184,11 @@ int main(){
             case 1: test(tabela); break;
             case 2: pretraga(tabela); break;
             case 3: umetanje(tabela); break;
-            case 4: statistika(tabela); break;
-            case 5: brisanje(tabela); break;
-            case 6: ciscenje(tabela); break;
-            case 7: brisanjeStat(tabela); break;
+            case 4: cout<<(*tabela); break;
+            case 5: statistika(tabela); break;
+            case 6: brisanje(tabela); break;
+            case 7: ciscenje(tabela); break;
+            case 8: brisanjeStat(tabela); break;
             default: cout<<"Pogresan unos"<<endl; break;
         }
         system("pause");

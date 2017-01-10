@@ -4,12 +4,18 @@
 
 #include "HashTable.h"
 #include <iostream>
-std::ostream& operator<<(std::ostream& os, HashTable& table){
-    for(int i=0; i<table.table_.size(); i++){
-        os<<i<<" "<<table.table_[i].key_<<" "<<((table.table_[i].key_<=-1)?"EMPTY":*(table.table_[i].string_))<<std::endl;
-    }
-    return os;
-}
+
+void HashTable::printtable(std::ostream& os) const{
+    table_.print(os);
+};
+
+void CuckooHashTable::printtable(std::ostream& os) const {
+    os << "Table 1" << std::endl;
+    table1_.print(os);
+    os << std::endl << "Table 2" << std::endl;
+    table2_.print(os);
+
+};
 
 string * HashTable::findKey(int key){
     int hash=(*function_)(key,-1,0, table_); int attempt=1;
@@ -78,26 +84,58 @@ bool HashTable::deleteKey(int key){
     }
 }
 
-string * CuckooHashTable::findKey(int);
+string * CuckooHashTable::findKey(int key){
+    int h1=(*function1_)(key,-1,1,table1_), h2=(*function1_)(key,-1,2,table1_);
+    if(table1_[h1].key_==key) return table1_[h1].string_;
+    else if(table2_[h2].key_==key) return table2_[h2].string_;
+    else return nullptr;
+};
 bool CuckooHashTable::insertKey(int key, string& str){
     if(keyCount()==table1_.size() || findKey(key)) return false;
-    double maxLoop=(int)log2(tableSize());
     int tries=0, prevaddr=-1, prev=key;
     table::tableInstance temp; temp.key_=key; temp.string_=new string(str);
-    while (tries<maxLoop){
+    while (tries<max_loop_){
         table1_.cuckoo(&temp, prevaddr=(*function1_)(key,prev,1,table1_));
-        if (temp.key_==-1) return true;
+        if (temp.key_==-1) {
+            table1_.key_count_++;
+            return true;
+        }
         else prev=table1_[prevaddr].key_;
         tries++;
         table2_.cuckoo(&temp, prevaddr=(*function1_)(key,prev,2,table1_));
-        if (temp.key_==-1) return true;
+        if (temp.key_==-1) {
+            table2_.key_count_++;
+            return true;
+        }
         else prev=table2_[prevaddr].key_;
         tries++;
     }
+    std::cout<<"temp " <<" "<< temp.key_<<std::endl;
     rehash();
     string st=*temp.string_;
     delete temp.string_;
     temp.string_= nullptr;
     return insertKey(temp.key_,st);
 }
-bool CuckooHashTable::deleteKey(int);
+bool CuckooHashTable::deleteKey(int key){
+    int h1=(*function1_)(key,-1,1,table1_), h2=(*function1_)(key,-1,2,table1_);
+    if(table1_[h1].key_==key) {
+        table1_[h1].key_=-1;
+        delete table1_[h1].string_;
+        table1_[h1].string_=nullptr;
+        return true;
+    }
+    else if(table2_[h2].key_==key) {
+        table2_[h2].key_=-1;
+        delete table2_[h2].string_;
+        table2_[h2].string_=nullptr;
+        return true;
+    }
+    else return false;
+};
+
+void CuckooHashTable::rehash(){
+    printtable(std::cout);
+    system("pause");
+    return;
+}
